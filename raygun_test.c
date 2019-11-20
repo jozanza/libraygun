@@ -2,26 +2,41 @@
 #include <raylib.h>
 #include <stdio.h>
 
+// The Raygun singleton
+// --------------------
 Raygun* raygun = &RAYGUN_API;
 
-typedef struct State {
+// User-defined game context
+// -------------------------
+typedef struct GameContext {
   const char* name;
   int counter;
   RenderTexture2D offCanvas;
-} State;
+} GameContext;
 
+// Lifecycle methods
+// -----------------
+// - init
+// - destroy
+// - draw
+// - update
+
+// Initialize
 void init(void* ctx) {
-  State* game = ctx;
+  GameContext* game = ctx;
   printf("Initialized %s\n", game->name);
 }
 
+// Deinitialize
 void destroy(void* ctx) {
-  State* game = ctx;
+  GameContext* game = ctx;
   printf("Destroyed %s\n", game->name);
 }
 
+// Draw each frame
 void draw(void* ctx) {
-  State* game            = ctx;
+  GameContext* game = ctx;
+  // First, draw onto the game canvas
   RenderTexture2D canvas = raygun->canvas();
   BeginTextureMode(canvas);
   {
@@ -34,6 +49,7 @@ void draw(void* ctx) {
         RAYWHITE);
   }
   EndTextureMode();
+  // Then, draw the letterboxed game canvas into the window
   BeginDrawing();
   {
     raygun->clear();
@@ -43,15 +59,20 @@ void draw(void* ctx) {
   EndDrawing();
 }
 
+// Update the context each frame
 void update(void* ctx) {
-  State* game = ctx;
+  GameContext* game = ctx;
   game->counter++;
 }
 
+// Setup and launch the game
+// -------------------------
 int main(void) {
-  State context = {
-      .name = "Test Game",
+  // Bootstrap the lifecycle method context
+  GameContext context = {
+      .name = "My Game",
   };
+  // Configure the game
   RaygunConfig cfg = {
       .logLevel     = LOG_ERROR,
       .context      = &context,
