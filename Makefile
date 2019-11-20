@@ -14,7 +14,7 @@ CC := gcc
 DB := lldb
 
 # Source files
-SRC := $(BIN).c
+SRC := $(BIN).c scene.c timer.c
 
 # Source file & test files
 TST := $(SRC) $(BIN)_test.c

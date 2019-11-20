@@ -1,5 +1,7 @@
 #include "raygun.h"
 
+#include "scene.h"
+#include "timer.h"
 #include <raylib.h>
 #include <stdlib.h>
 
@@ -19,6 +21,8 @@ typedef struct Window {
 typedef struct GameContext {
   Canvas canvas;
   Window window;
+  SceneManager sceneManager;
+  RaygunConfig config;
   int frame;
 } GameContext;
 
@@ -66,26 +70,28 @@ static Rectangle calcLetterBox() {
 
 /** Public Methods **/
 
-static void API_start(RaygunConfig cfg) {
+static void API_start(RaygunConfig config) {
   //* Initialize
-  game.window.title       = cfg.windowTitle == NULL ? "" : cfg.windowTitle;
-  game.window.clearColor  = cfg.windowColor;
-  game.window.allowResize = cfg.windowResize;
-  game.window.fps         = cfg.fps;
-  game.canvas.width       = cfg.width;
-  game.canvas.height      = cfg.height;
-  SetTraceLogLevel(cfg.logLevel);
-  openWindow(cfg.windowWidth, cfg.windowHeight, 0, 0);
-  if (cfg.init) cfg.init(cfg.context);
+  game.config             = config;
+  game.window.title       = config.windowTitle == NULL ? "" : config.windowTitle;
+  game.window.clearColor  = config.windowColor;
+  game.window.allowResize = config.windowResize;
+  game.window.fps         = config.fps;
+  game.canvas.width       = config.width;
+  game.canvas.height      = config.height;
+  SceneManagerInit(&game.sceneManager);
+  SetTraceLogLevel(config.logLevel);
+  openWindow(config.windowWidth, config.windowHeight, 0, 0);
+  if (config.init) config.init(config.context);
   //* Draw + Update
   while (!WindowShouldClose()) {
     handleWindowResize();
-    if (cfg.draw) cfg.draw(cfg.context);
-    if (cfg.update) cfg.update(cfg.context);
+    if (config.draw) config.draw(config.context);
+    if (config.update) config.update(config.context);
     game.frame++;
   }
   //* Destroy
-  if (cfg.destroy) cfg.destroy(cfg.context);
+  if (config.destroy) config.destroy(config.context);
   UnloadRenderTexture(game.canvas.target);
   CloseWindow();
 }
@@ -121,11 +127,40 @@ static void API_drawTexture(Texture2D texture) {
       tint);
 }
 
+static void API_addScene(RaygunScene* scene) {
+  //* Create the scene
+  Scene s = SceneCreate(
+      game.canvas.width,
+      game.canvas.height,
+      scene->enter,
+      scene->exit,
+      scene->draw,
+      scene->update);
+  //* Assign the scene ID
+  scene->id = game.sceneManager.scenes.size;
+  //* Add to the manager
+  SceneAppend(&game.sceneManager, s);
+}
+
+static void API_drawScenes(void) {
+  SceneDraw(&game.sceneManager, game.canvas.target, game.config.context);
+}
+
+static void API_updateScenes(void) {
+  SceneUpdate(&game.sceneManager, game.config.context);
+}
+
 Raygun RAYGUN_API = {
-    .start       = API_start,
-    .width       = API_width,
-    .height      = API_height,
-    .clear       = API_clear,
-    .canvas      = API_canvas,
-    .drawTexture = API_drawTexture,
+    .start        = API_start,
+    .width        = API_width,
+    .height       = API_height,
+    .clear        = API_clear,
+    .canvas       = API_canvas,
+    .drawTexture  = API_drawTexture,
+    .addScene     = API_addScene,
+    .drawScenes   = API_drawScenes,
+    .updateScenes = API_updateScenes,
+    // .frame
+    // .transitionTo
+    // .transitionProgress
 };

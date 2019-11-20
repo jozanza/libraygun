@@ -20,6 +20,14 @@ typedef struct RaygunConfig {
   void (*update)(void* ctx);
 } RaygunConfig;
 
+typedef struct RaygunScene {
+  int id;
+  void (*enter)(void* ctx);
+  void (*exit)(void* ctx);
+  void (*draw)(void* ctx);
+  void (*update)(void* ctx);
+} RaygunScene;
+
 typedef struct Raygun {
   void (*start)(RaygunConfig cfg);
   int (*width)(void);
@@ -27,6 +35,9 @@ typedef struct Raygun {
   void (*clear)(void);
   RenderTexture2D (*canvas)(void);
   void (*drawTexture)(Texture2D texture);
+  void (*addScene)(RaygunScene* scene);
+  void (*drawScenes)(void);
+  void (*updateScenes)(void);
 } Raygun;
 
 Raygun RAYGUN_API;
