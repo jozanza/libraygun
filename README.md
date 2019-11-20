@@ -29,7 +29,7 @@ typedef struct Raygun {
 You can use them like this:
 
 ```c
-#include "raygun.h"
+#include <raygun.h>
 #include <raylib.h>
 #include <stdio.h>
 
