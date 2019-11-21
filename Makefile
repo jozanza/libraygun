@@ -33,9 +33,9 @@ LDFLAGS :=
 # Builds the archive
 build:
 	clear
-	rm -rf $(BIN).o $(BIN).a
-	$(CC) $(CFLAGS) $(LDFLAGS) $(LIB) $(SRC) -c -o $(BIN).o
-	ar rcs lib$(BIN).a $(BIN).o
+	rm -rf *.o *.a
+	$(CC) $(CFLAGS) $(LDFLAGS) $(SRC) -c
+	ar rcs lib$(BIN).a *.o
 	echo "Built lib$(BIN).a"
 
 # Copies the library and header to the standard locations

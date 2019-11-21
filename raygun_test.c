@@ -15,23 +15,37 @@ typedef struct GameContext {
   RenderTexture2D offCanvas;
 } GameContext;
 
-void enterSceneA(void* ctx);
-void exitSceneA(void* ctx);
-void drawSceneA(void* ctx);
-void updateSceneA(void* ctx);
-RaygunScene sceneA = {
-    .enter   = enterSceneA,
-    .exit    = exitSceneA,
-    .draw    = drawSceneA,
-    .update  = updateSceneA,
-};
+typedef enum TransitionDirection {
+  TransitionDirection_Next = -1,
+  TransitionDirection_Back = 1,
+} TransitionDirection;
+
+void swipe(int from, int to, void* ctx) {
+  int dir = (int)ctx;
+  float p = raygun->transitionProgress();
+  // printf("progress: %.2f\n", p);
+  int width   = raygun->width();
+  int offsetX = p * (float)width;
+  int fromX   = offsetX * dir;
+  int toX     = fromX + (width * -dir);
+  raygun->translateScene(from, fromX, 0);
+  raygun->translateScene(to, toX, 0);
+}
+
+// Scenes
+// ------
+RaygunScene sceneA;
+RaygunScene sceneB;
+RaygunScene sceneC;
+
+//Scene A
 void enterSceneA(void* ctx) {
   GameContext* game = ctx;
   printf("Entered Scene A!\n");
 }
 void exitSceneA(void* ctx) {
   GameContext* game = ctx;
-  // ...
+  printf("Exited Scene A!\n");
 }
 void drawSceneA(void* ctx) {
   GameContext* game = ctx;
@@ -46,20 +60,86 @@ void drawSceneA(void* ctx) {
 void updateSceneA(void* ctx) {
   GameContext* game = ctx;
   game->counter++;
+  if (IsKeyPressed(KEY_RIGHT)) {
+    raygun->transitionTo(
+        sceneB.id,
+        raygun->seconds(1),
+        swipe,
+        (void*)TransitionDirection_Next);
+  }
 }
-
-RaygunScene sceneB = {
-    .enter   = NULL,
-    .exit    = NULL,
-    .draw    = NULL,
-    .update  = NULL,
+RaygunScene sceneA = {
+    .enter  = enterSceneA,
+    .exit   = exitSceneA,
+    .draw   = drawSceneA,
+    .update = updateSceneA,
 };
 
+//Scene B
+void enterSceneB(void* ctx) {
+  GameContext* game = ctx;
+  printf("Entered Scene B!\n");
+}
+void exitSceneB(void* ctx) {
+  GameContext* game = ctx;
+  printf("Exited Scene B!\n");
+}
+void drawSceneB(void* ctx) {
+  GameContext* game = ctx;
+  ClearBackground(GREEN);
+}
+void updateSceneB(void* ctx) {
+  GameContext* game = ctx;
+  if (IsKeyPressed(KEY_LEFT)) {
+    raygun->transitionTo(
+        sceneA.id,
+        raygun->seconds(.5),
+        swipe,
+        (void*)TransitionDirection_Back);
+  }
+  if (IsKeyPressed(KEY_RIGHT)) {
+    raygun->transitionTo(
+        sceneC.id,
+        raygun->seconds(.5),
+        swipe,
+        (void*)TransitionDirection_Next);
+  }
+}
+RaygunScene sceneB = {
+    .enter  = enterSceneB,
+    .exit   = exitSceneB,
+    .draw   = drawSceneB,
+    .update = updateSceneB,
+};
+
+// Scene C
+void enterSceneC(void* ctx) {
+  GameContext* game = ctx;
+  printf("Entered Scene C!\n");
+}
+void exitSceneC(void* ctx) {
+  GameContext* game = ctx;
+  printf("Exited Scene C!\n");
+}
+void drawSceneC(void* ctx) {
+  GameContext* game = ctx;
+  ClearBackground(BLUE);
+}
+void updateSceneC(void* ctx) {
+  GameContext* game = ctx;
+  if (IsKeyPressed(KEY_LEFT)) {
+    raygun->transitionTo(
+        sceneB.id,
+        raygun->seconds(.5),
+        swipe,
+        (void*)TransitionDirection_Back);
+  }
+}
 RaygunScene sceneC = {
-    .enter   = NULL,
-    .exit    = NULL,
-    .draw    = NULL,
-    .update  = NULL,
+    .enter  = enterSceneC,
+    .exit   = exitSceneC,
+    .draw   = drawSceneC,
+    .update = updateSceneC,
 };
 
 // Lifecycle methods
@@ -85,37 +165,19 @@ void destroy(void* ctx) {
 }
 
 // Draw each frame
-void draw(void* ctx) {
-  GameContext* game = ctx;
-  // First, draw onto the game canvas
-  RenderTexture2D canvas = raygun->canvas();
-  // BeginTextureMode(canvas);
-  // {
-  //   ClearBackground(RED);
-  //   DrawText(
-  //       TextFormat("size: %dx%d, frame: %d", raygun->width(), raygun->height(), game->counter),
-  //       16,
-  //       16,
-  //       10,
-  //       RAYWHITE);
-  // }
-  // EndTextureMode();
-
+void draw(void* _ctx) {
   raygun->drawScenes();
-
-  // Then, draw the letterboxed game canvas into the window
   BeginDrawing();
   {
     raygun->clear();
-    raygun->drawTexture(canvas.texture);
+    raygun->drawTexture(raygun->canvas().texture);
     DrawText("(^_^)", 0, 0, 24, WHITE);
   }
   EndDrawing();
 }
 
 // Update the context each frame
-void update(void* ctx) {
-  GameContext* game = ctx;
+void update(void* _ctx) {
   raygun->updateScenes();
 }
 

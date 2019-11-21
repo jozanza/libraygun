@@ -124,11 +124,11 @@ void SceneUpdate(SceneManager* m, void* ctx) {
   if (m->indexes.next != -1) {
     //* Run transition callback
     SceneTransitionCallback cb = m->transition.cb;
-    Scene* from                = &entries[m->indexes.curr];
-    Scene* to                  = &entries[m->indexes.next];
     if (cb) {
-      cb(from, to, m->transition.ctx);
+      cb(m->indexes.curr, m->indexes.next, m->transition.ctx);
     }
+    Scene* from    = &entries[m->indexes.curr];
+    Scene* to      = &entries[m->indexes.next];
     float progress = TimerGetProgress(t);
     if (progress == 1) {
       //* Transition complete

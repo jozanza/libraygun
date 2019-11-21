@@ -29,7 +29,7 @@ typedef struct Scene {
   SceneCallback update;
 } Scene;
 
-typedef void (*SceneTransitionCallback)(Scene* from, Scene* to, void* ctx);
+typedef void (*SceneTransitionCallback)(int from, int to, void* ctx);
 
 typedef struct SceneManager {
   struct {

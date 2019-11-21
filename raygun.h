@@ -38,6 +38,10 @@ typedef struct Raygun {
   void (*addScene)(RaygunScene* scene);
   void (*drawScenes)(void);
   void (*updateScenes)(void);
+  float (*transitionProgress)(void);
+  void (*translateScene)(int sceneId, int x, int y);
+  bool (*transitionTo)(int to, int duration, void (*transitionCallback)(int from, int to, void* ctx), void* ctx);
+  int (*seconds)(float sec);
 } Raygun;
 
 Raygun RAYGUN_API;
